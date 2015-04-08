@@ -148,6 +148,9 @@
         elm.style['height'] = '1px';
         elm.style['left'] = '0px';
         elm.style['bottom'] = '0px';
+        elm.style['-webkit-backface-visibility'] = 'hidden';
+        elm.style['-moz-backface-visibility'] = 'hidden';
+        elm.style['-ms-backface-visibility'] = 'hidden';
         return elm;
     }
 
@@ -161,7 +164,7 @@
                 startIteration(elm);
                 var evt = document.createEvent("Event");
                 evt.initEvent("fps",true,true); 
-                evt.fps = fps;
+                evt.fps = updateStats(fps);
                 evt.method = controls.method;
                 document.dispatchEvent(evt);
             },
@@ -238,6 +241,7 @@
                     var bodyRef = document.getElementsByTagName("body").item(0);
                     bodyRef.appendChild(ref);
                 }
+                self.stats = undefined;
                 setTimeout(function (evt) {
                     startIteration(ref);
                 }, 10);
@@ -255,5 +259,19 @@
             ref = null;
         }
     };
+
+    function updateStats(fps) {
+        var stats = self.stats || { max : -1, min : -1, current : -1, count : 0, avg : 0 };
+
+        stats.max = (stats.max > fps) ? stats.max : fps;
+        stats.min = (stats.min == -1) || (stats.min > fps) ? fps : stats.min;
+        stats.current = fps;
+        stats.count++;
+        stats.avg = ((stats.avg * (stats.count - 1)) + fps) / stats.count;
+
+        self.stats = stats;
+
+        return stats;
+    }
 
 })();
