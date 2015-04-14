@@ -261,13 +261,27 @@
     };
 
     function updateStats(fps) {
-        var stats = self.stats || { max : -1, min : -1, current : -1, count : 0, avg : 0 };
+        var stats = self.stats || {
+            max : -1,
+            min : -1,
+            current : -1,
+            count : 0,
+            avg : 0,
+            M2 : 0,
+            variance : 0,
+            std : 0
+        };
 
         stats.max = (stats.max > fps) ? stats.max : fps;
         stats.min = (stats.min == -1) || (stats.min > fps) ? fps : stats.min;
         stats.current = fps;
         stats.count++;
-        stats.avg += (fps - stats.avg) / stats.count;
+        var delta = (fps - stats.avg);
+        var R = delta / stats.count;
+        stats.avg += R;
+        stats.M2 += (stats.count - 1) * delta * R;
+        stats.variance = stats.M2 / (stats.count - 1);
+        stats.std = Math.sqrt(stats.variance);
 
         self.stats = stats;
 
