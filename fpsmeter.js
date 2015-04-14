@@ -267,7 +267,7 @@
         stats.min = (stats.min == -1) || (stats.min > fps) ? fps : stats.min;
         stats.current = fps;
         stats.count++;
-        stats.avg = ((stats.avg * (stats.count - 1)) + fps) / stats.count;
+        stats.avg += (fps - stats.avg) / stats.count;
 
         self.stats = stats;
 
