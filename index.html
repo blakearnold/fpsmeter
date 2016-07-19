@@ -47,16 +47,16 @@
     <script type="text/javascript">
 
       var timer;
-      
+
       function startAnimation(n){
         for(var i=0; i<(5*n); i++) addDiv();
         timer = setInterval(moveContent,500);
       }
-      
+
       function stopAnimation(){
         clearInterval(timer);
       }
-            
+
       function moveContent(){
         var divs= document.getElementById("container").getElementsByTagName("div");
         for (var i=0, l= divs.length; i< l; i++){
@@ -72,9 +72,9 @@
         div.className = "movingDiv";
         document.getElementById("container").appendChild(div);
       }
-    
+
     var fps = null;
-    
+
     function coloredFramesTest(n) {
         fps = new Array();
         var averageArray = function(arr) {
@@ -84,7 +84,7 @@
             }
             avg = Math.round(avg/arr.length);
             return avg;
-        }        
+        }
         setTimeout(
             function(){
                 stopAnimation();
@@ -123,12 +123,12 @@
     </aside>
     <script>
         if(!window.FPSMeter){
-            document.getElementById("results").innerHTML = "Your browser doesn't seem to be compatible with this test."; 
+            document.getElementById("results").innerHTML = "Your browser doesn't seem to be compatible with this test.";
         }else{
             document.addEventListener("fps",
                 function(evt) {
-                    document.getElementById("fps").innerHTML = evt.fps + " fps";
-                    fps.push(evt.fps);
+                    document.getElementById("fps").innerHTML = evt.fps.current + " fps";
+                    fps.push(evt.fps.current);
                 },
                 false);
             FPSMeter.run(0.5);
