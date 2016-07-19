@@ -41,7 +41,7 @@
                 cssTrans.eventName = transEndEventNames[prop];
             }
         }
-        
+
         return cssTrans;
     }
 
@@ -66,10 +66,10 @@
         var vendors = ['ms', 'moz', 'webkit', 'o'];
         for(var x = 0; x < vendors.length && !requestAnimationFrame; ++x) {
             requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-            cancelAnimationFrame = 
+            cancelAnimationFrame =
               window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
         }
-     
+
         if (!requestAnimationFrame || !cancelAnimationFrame) {
             var lastTime = 0;
             requestAnimationFrame = function(callback, element) {
@@ -77,7 +77,7 @@
                 var currTime = new Date().getTime();
                 // 16 ms is for a 60fps target
                 var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-                var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
+                var id = window.setTimeout(function() { callback(currTime + timeToCall); },
                   timeToCall);
                 lastTime = currTime + timeToCall;
                 return id;
@@ -105,7 +105,7 @@
             controls.startFrame = function(ref) {
                 values = [];
                 // Define a function to repeatedly store reference
-                // x positions 
+                // x positions
                 var storeValue = function () {
                     frameID = controls.requestAnimationFrame(storeValue);
                     var l = GetFloatValueOfAttr(ref, 'left');
@@ -118,9 +118,9 @@
             };
 
             controls.framesDiff = function() {
-                // We will look at reference x positions 
-                // stored during the last iteration and remove 
-                // duplicates                        
+                // We will look at reference x positions
+                // stored during the last iteration and remove
+                // duplicates
                 controls.cancelAnimationFrame(frameID);
                 var duplicates = 0;
                 var current = -1;
@@ -163,7 +163,7 @@
                 var fps = Math.round(frames*1000/elapsed);
                 startIteration(elm);
                 var evt = document.createEvent("Event");
-                evt.initEvent("fps",true,true); 
+                evt.initEvent("fps",true,true);
                 evt.fps = updateStats(fps);
                 evt.method = controls.method;
                 document.dispatchEvent(evt);
@@ -207,7 +207,7 @@
                           floatValue = value.getFloatValue (CSSPrimitiveValue.CSS_PX);
                       }
                 }
-            } 
+            }
             catch (e) {
                 // Opera doesn't support the getPropertyCSSValue method
                 var stringValue = compStyle[attr];
@@ -257,7 +257,13 @@
             var bodyRef = document.getElementsByTagName("body").item(0);
             bodyRef.removeChild(ref);
             ref = null;
-        }
+        },
+        resetStats : function() {
+            self.stats = undefined;
+        },
+        getStats : function() {
+            return self.stats;
+        },
     };
 
     function updateStats(fps) {

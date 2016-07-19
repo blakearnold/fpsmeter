@@ -76,19 +76,13 @@
     var fps = null;
 
     function coloredFramesTest(n) {
-        fps = new Array();
-        var averageArray = function(arr) {
-            var avg = arr[0];
-            for (var i = 1; i < arr.length; i++) {
-                avg += arr[i];
-            }
-            avg = Math.round(avg/arr.length);
-            return avg;
-        }
         setTimeout(
             function(){
                 stopAnimation();
-                var avgfps = averageArray(fps);
+                var avgfps = FPSMeter.getStats().avg;
+                FPSMeter.resetStats();
+
+                document.getElementById("results2").innerHTML = "Last Framerate: " + avgfps;
                 if ((avgfps>=30)){
                     coloredFramesTest(n+1);
                 }else{
@@ -97,6 +91,7 @@
                     +"<br/>Reload the page to restart the test";
                 }
             },5000);
+        var stats = FPSMeter.getStats();
         document.getElementById("results").innerHTML = "Current number of frames: " + n*5;
         startAnimation(n);
     }
@@ -117,6 +112,8 @@
     </div>
     <p id="results">
     </p>
+    <p id="results2">
+    </p>
     </article>
     <aside>
         <div id="fps"></div>
@@ -128,7 +125,6 @@
             document.addEventListener("fps",
                 function(evt) {
                     document.getElementById("fps").innerHTML = evt.fps.current + " fps";
-                    fps.push(evt.fps.current);
                 },
                 false);
             FPSMeter.run(0.5);
