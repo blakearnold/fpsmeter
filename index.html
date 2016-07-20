@@ -108,8 +108,7 @@
       document.getElementById("results2").innerHTML = "Average Framerate: " + avgfps;
       if (avgfps < lowestFPS && currentBoxes > 0) {
         // TOO low
-        var divs = document.getElementById("container").getElementsByTagName("div");
-        divs.removeChild(boxes[--currentBoxes]);
+        var divs = document.getElementById("container").removeChild(boxes[--currentBoxes]);
         updateTextBox();
       } else if (avgfps > targetFps && currentBoxes < total) {
         var boxDiv = boxes[currentBoxes++];
