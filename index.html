@@ -65,6 +65,7 @@
           document.getElementById("container").appendChild(boxDiv);
         }
         updateTextBox();
+        activateFPS();
         timer = setInterval(moveContent, 500);
         timer2 = setInterval(checkUp, seconds);
       }
@@ -116,23 +117,18 @@
       var avgfps = stats.avg;
       document.getElementById("results2").innerHTML = "Average Framerate: " + avgfps;
       if (avgfps < lowestFPS && currentBoxes > 0) {
-        console.log("new increment " + increment);
         var newCount = Math.max(0, currentBoxes - increment);
         updateIncrement();
         for (var i = newCount; i < currentBoxes; i++) {
-
-          console.log("removing " + i);
           var divs = document.getElementById("container").removeChild(boxes[i]);
         }
         currentBoxes = newCount;
         // TOO low
         updateTextBox();
       } else if (avgfps > targetFps && currentBoxes < total) {
-        console.log("new increment " + increment);
         var newCount = Math.min(total, currentBoxes + increment);
         updateIncrement();
         for (var i = currentBoxes; i < newCount; i++) {
-          console.log("adding " + i);
           document.getElementById("container").appendChild(boxes[i]);
         }
         currentBoxes = newCount;
@@ -152,6 +148,30 @@
       NumBoxes.innerHTML = "Number of boxes: " + currentBoxes;
     }
 
+
+    var getTime = Date.now || function() {
+        return new Date().getTime();
+      },
+      lastUpdate, frames, fpsIntervalID, fpsElem;
+
+
+    function activateFPS() {
+      fpsElem = document.getElementById("fps2");
+      fpsActive = true;
+      frames = 0;
+      lastUpdate = getTime();
+      fpsIntervalID = setInterval(updateFPS, 10);
+    }
+
+    function updateFPS() {
+      frames++;
+      var elapsed = getTime() - lastUpdate;
+      if (fpsActive && elapsed > 1000) {
+        fpsElem.innerHTML = Number(frames / elapsed * 1000).toFixed(1) + " fps";
+        lastUpdate += elapsed;
+        frames = 0;
+      }
+    }
 
 
     </script>
@@ -174,6 +194,9 @@
     <p id="results2">
     </p>
     </article>
+    <p>
+      Javascript Loop calculated FPS
+    </p><div id="fps2">-- fps</div>
     <aside>
         <div id="fps"></div>
     </aside><!-- slider objects -->

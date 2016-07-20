@@ -67,16 +67,21 @@
                 return window.mozPaintCount - controls.frameID;
             };
         } else {
-            var values;
+            var current;
+            var positions;
             controls.startFrame = function(ref) {
-                values = [];
+                current = -1;
+                positions = 0;
                 // Define a function to repeatedly store reference
                 // x positions
                 var storeValue = function () {
                     controls.frameID = window.requestAnimationFrame(storeValue);
                     var l = GetFloatValueOfAttr(ref, 'left');
-                    if(l){
-                        values.push(l);
+                    if (l != current) {
+                        positions++
+                        current == l;
+                    } else {
+                        console.log("dup");
                     }
                 };
                 // Start storing positions right now
@@ -84,21 +89,8 @@
             };
 
             controls.stopFrame = function() {
-                // We will look at reference x positions
-                // stored during the last iteration and remove
-                // duplicates
                 window.cancelAnimationFrame(controls.frameID);
-                var duplicates = 0;
-                var current = -1;
-                for (var i = 0; i < values.length; i++) {
-                    var l = values[i];
-                    if (l == current) {
-                        duplicates++;
-                    } else {
-                        current = l;
-                    }
-                }
-                return (values.length - duplicates);
+                return positions;
             };
         }
 
@@ -123,7 +115,7 @@
     function setTransition(elm, cssTrans, rate) {
         elm.style[cssTrans.propertyName] = 'all ' + rate + 's linear';
         elm.addEventListener(cssTrans.eventName,
-            function (evt) {
+            function (event) {
                 var elapsed = (new Date().getTime()) - startTime;
                 var frames = controls.stopFrame();
                 var fps = Math.round(frames*1000/elapsed);
@@ -254,8 +246,6 @@
         stats.std = Math.sqrt(stats.variance);
 
         self.stats = stats;
-        console.log(stats);
-
         return stats;
     }
 
