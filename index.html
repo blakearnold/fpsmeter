@@ -45,11 +45,24 @@
     }
     </style>
     <script type="text/javascript">
+      var total = 10000; // create a lot so we can add remove them
+      var currentBoxes = 1000;
+      var boxes = new Array(total);
 
       var timer;
+      var targetFps;
+      var varyFPS = targetFps / 10; //allowed range of FPS
+      var lowestFPS = targetFps - varyFPS; //lowest FPS before taking out objects
 
       function startAnimation(n){
-        for(var i=0; i<(5*n); i++) addDiv();
+        for (i = 0; i < total; i++) {
+            boxes[i] = createDiv()
+        }
+        for (i = 0; i < currentBoxes; i++) {
+          var boxDiv = boxes[i];
+          document.getElementById("container").appendChild(boxDiv);
+        }
+        updateTextBox();
         timer = setInterval(moveContent,500);
       }
 
@@ -58,43 +71,60 @@
       }
 
       function moveContent(){
-        var divs= document.getElementById("container").getElementsByTagName("div");
+        var stats = FPSMeter.getStats();
+        if (stats) {
+          updateNumberOfBoxes(stats);
+        }
+        FPSMeter.resetStats();
+        var divs = document.getElementById("container").getElementsByTagName("div");
         for (var i=0, l= divs.length; i< l; i++){
           divs[i].style.left= Math.round((Math.random()*(420)))+"px";
           divs[i].style.top= Math.round((Math.random()*(176)))+"px";
         }
       }
-      function addDiv(){
-        var div= document.createElement("div");
+      function createDiv(){
+        var div = document.createElement("div");
         div.style.backgroundColor= "rgb("+Math.round(Math.random()*255)+","+Math.round(Math.random()*255)+","+Math.round(Math.random()*255)+")";
         div.style.left= Math.round((Math.random()*(420)))+"px";
         div.style.top= Math.round((Math.random()*(176)))+"px";
         div.className = "movingDiv";
-        document.getElementById("container").appendChild(div);
+        return div;
       }
 
     var fps = null;
 
-    function coloredFramesTest(n) {
-        setTimeout(
-            function(){
-                stopAnimation();
-                var avgfps = FPSMeter.getStats().avg;
-                FPSMeter.resetStats();
-
-                document.getElementById("results2").innerHTML = "Last Framerate: " + avgfps;
-                if ((avgfps>=30)){
-                    coloredFramesTest(n+1);
-                }else{
-                    FPSMeter.stop();
-                    document.getElementById("results").innerHTML = "Maximum number of frames animated @30fps : " + (n-1)*5;
-                    +"<br/>Reload the page to restart the test";
-                }
-            },5000);
-        var stats = FPSMeter.getStats();
-        document.getElementById("results").innerHTML = "Current number of frames: " + n*5;
-        startAnimation(n);
+    function targetFpsUpdate(value) {
+        targetFps = value;
+        varyFPS = Math.ceil(targetFps / 10); //allowed range of FPS
+        lowestFPS = targetFps - varyFPS; //lowest FPS before taking out objects
+        console.log(targetFps);
+        var targetFpsElement = document.getElementById('FPSTEXT_ID');
+        targetFpsElement.innerHTML = "Target FPS: " + lowestFPS + " - " + targetFps;
     }
+
+
+    function updateNumberOfBoxes(stats) {
+      var avgfps = stats.avg;
+      document.getElementById("results2").innerHTML = "Average Framerate: " + avgfps;
+      if (avgfps < lowestFPS && currentBoxes > 0) {
+        // TOO low
+        var divs = document.getElementById("container").getElementsByTagName("div");
+        divs.removeChild(boxes[--currentBoxes]);
+        updateTextBox();
+      } else if (avgfps > targetFps && currentBoxes < total) {
+        var boxDiv = boxes[currentBoxes++];
+        document.getElementById("container").appendChild(boxDiv);
+        updateTextBox();
+      }
+    }
+
+    function updateTextBox() {
+      var NumBoxes = document.getElementById('NUMBOXES_ID');
+      NumBoxes.innerHTML = "Number of boxes: " + currentBoxes;
+    }
+
+
+
     </script>
   </head>
   <body>
@@ -110,26 +140,34 @@
     </header>
     <div id="container">
     </div>
-    <p id="results">
-    </p>
+    <text id="FPSTEXT_ID">Target FPS:</text>
+    <text id="NUMBOXES_ID">Number of objects:</text>
     <p id="results2">
     </p>
     </article>
     <aside>
         <div id="fps"></div>
-    </aside>
+    </aside><!-- slider objects -->
+    <br />
+    <label for="slider">Target:</label>
+    <input type="range" name="slider" id="FPSSLIDE_ID" min="0" max="60" value="50">
+
     <script>
         if(!window.FPSMeter){
             document.getElementById("results").innerHTML = "Your browser doesn't seem to be compatible with this test.";
         }else{
-            document.addEventListener("fps",
-                function(evt) {
-                    document.getElementById("fps").innerHTML = evt.fps.current + " fps";
-                },
-                false);
             FPSMeter.run(0.5);
-            coloredFramesTest(1);
+            startAnimation(1);
         }
+        document.getElementById("FPSSLIDE_ID").onchange = function(e) {
+            targetFpsUpdate(this.value);
+        };
+        targetFpsUpdate(document.getElementById("FPSSLIDE_ID").value);
+
+        document.addEventListener("fps",
+          function(evt) {
+              document.getElementById("fps").innerHTML = evt.fps.current + " fps";
+          }, false);
     </script>
   </body>
 </html>
