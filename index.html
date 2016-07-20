@@ -46,15 +46,17 @@
     </style>
     <script type="text/javascript">
       var total = 10000; // create a lot so we can add remove them
-      var currentBoxes = 300;
+      var currentBoxes = 5000;
+      var increment = Math.floor(currentBoxes / 2);
       var boxes = new Array(total);
 
       var timer;
+      var timer2;
       var targetFps;
       var varyFPS = targetFps / 10; //allowed range of FPS
       var lowestFPS = targetFps - varyFPS; //lowest FPS before taking out objects
 
-      function startAnimation(n){
+      function startAnimation(seconds){
         for (i = 0; i < total; i++) {
             boxes[i] = createDiv()
         }
@@ -63,19 +65,16 @@
           document.getElementById("container").appendChild(boxDiv);
         }
         updateTextBox();
-        timer = setInterval(moveContent,500);
+        timer = setInterval(moveContent, 500);
+        timer2 = setInterval(checkUp, seconds);
       }
 
       function stopAnimation(){
         clearInterval(timer);
+        clearInterval(timer2);
       }
 
       function moveContent(){
-        var stats = FPSMeter.getStats();
-        if (stats) {
-          updateNumberOfBoxes(stats);
-        }
-        FPSMeter.resetStats();
         var divs = document.getElementById("container").getElementsByTagName("div");
         for (var i=0, l= divs.length; i< l; i++){
           divs[i].style.left= Math.round((Math.random()*(420)))+"px";
@@ -91,6 +90,15 @@
         return div;
       }
 
+      function checkUp() {
+        var stats = FPSMeter.getStats();
+
+        if (stats) {
+          updateNumberOfBoxes(stats);
+          FPSMeter.resetStats();
+        }
+      }
+
     var fps = null;
 
     function targetFpsUpdate(value) {
@@ -100,6 +108,7 @@
         console.log(targetFps);
         var targetFpsElement = document.getElementById('FPSTEXT_ID');
         targetFpsElement.innerHTML = "Target FPS: " + lowestFPS + " - " + targetFps;
+        increment = Math.floor(total / 2);
     }
 
 
@@ -107,13 +116,34 @@
       var avgfps = stats.avg;
       document.getElementById("results2").innerHTML = "Average Framerate: " + avgfps;
       if (avgfps < lowestFPS && currentBoxes > 0) {
+        console.log("new increment " + increment);
+        var newCount = Math.max(0, currentBoxes - increment);
+        updateIncrement();
+        for (var i = newCount; i < currentBoxes; i++) {
+
+          console.log("removing " + i);
+          var divs = document.getElementById("container").removeChild(boxes[i]);
+        }
+        currentBoxes = newCount;
         // TOO low
-        var divs = document.getElementById("container").removeChild(boxes[--currentBoxes]);
         updateTextBox();
       } else if (avgfps > targetFps && currentBoxes < total) {
-        var boxDiv = boxes[currentBoxes++];
-        document.getElementById("container").appendChild(boxDiv);
+        console.log("new increment " + increment);
+        var newCount = Math.min(total, currentBoxes + increment);
+        updateIncrement();
+        for (var i = currentBoxes; i < newCount; i++) {
+          console.log("adding " + i);
+          document.getElementById("container").appendChild(boxes[i]);
+        }
+        currentBoxes = newCount;
         updateTextBox();
+      }
+    }
+
+    function updateIncrement() {
+      var newIncrement = Math.floor(increment / 2);
+      if (newIncrement > 0) {
+        increment = newIncrement;
       }
     }
 
@@ -155,8 +185,8 @@
         if(!window.FPSMeter){
             document.getElementById("results").innerHTML = "Your browser doesn't seem to be compatible with this test.";
         }else{
-            FPSMeter.run(0.5);
-            startAnimation(1);
+            FPSMeter.run(1);
+            startAnimation(5000);
         }
         document.getElementById("FPSSLIDE_ID").onchange = function(e) {
             targetFpsUpdate(this.value);

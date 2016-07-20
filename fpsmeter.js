@@ -49,56 +49,22 @@
     // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
     function getAnimationControls() {
         var controls = {};
+        controls.frameID = null;
 
         // Use this to remmeber what method we use to calculate fps
         controls.method = 'raf';
 
-        var requestAnimationFrame = window.requestAnimationFrame;
-        var cancelAnimationFrame = window.cancelAnimationFrame;
-
-        controls.requestAnimationFrame = function(callback) {
-            return requestAnimationFrame(callback);
-        };
-        controls.cancelAnimationFrame = function(id) {
-            return cancelAnimationFrame(id);
-        };
-
-        var vendors = ['ms', 'moz', 'webkit', 'o'];
-        for(var x = 0; x < vendors.length && !requestAnimationFrame; ++x) {
-            requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-            cancelAnimationFrame =
-              window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
-        }
-
-        if (!requestAnimationFrame || !cancelAnimationFrame) {
-            var lastTime = 0;
-            requestAnimationFrame = function(callback, element) {
-                controls.method = 'js';
-                var currTime = new Date().getTime();
-                // 16 ms is for a 60fps target
-                var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-                var id = window.setTimeout(function() { callback(currTime + timeToCall); },
-                  timeToCall);
-                lastTime = currTime + timeToCall;
-                return id;
-            };
-
-            cancelAnimationFrame = function(id) {
-                clearTimeout(id);
-            };
-        }
-
-        if (window.mozPaintCount != undefined) {
+        if (window.mozPaintCount !== undefined) {
             controls.method = 'native';
             // Remember how many paints we had
             controls.startFrame = function(ref) {
-                frameID = window.mozPaintCount;
+                controls.frameID = window.mozPaintCount;
             };
 
-            controls.framesDiff = function() {
+            controls.stopFrame = function() {
                 // We just count the number of paints that
                 // occured during the last iteration
-                return window.mozPaintCount - frameID;
+                return window.mozPaintCount - controls.frameID;
             };
         } else {
             var values;
@@ -107,7 +73,7 @@
                 // Define a function to repeatedly store reference
                 // x positions
                 var storeValue = function () {
-                    frameID = controls.requestAnimationFrame(storeValue);
+                    controls.frameID = window.requestAnimationFrame(storeValue);
                     var l = GetFloatValueOfAttr(ref, 'left');
                     if(l){
                         values.push(l);
@@ -117,11 +83,11 @@
                 storeValue();
             };
 
-            controls.framesDiff = function() {
+            controls.stopFrame = function() {
                 // We will look at reference x positions
                 // stored during the last iteration and remove
                 // duplicates
-                controls.cancelAnimationFrame(frameID);
+                window.cancelAnimationFrame(controls.frameID);
                 var duplicates = 0;
                 var current = -1;
                 for (var i = 0; i < values.length; i++) {
@@ -159,7 +125,7 @@
         elm.addEventListener(cssTrans.eventName,
             function (evt) {
                 var elapsed = (new Date().getTime()) - startTime;
-                var frames = controls.framesDiff();
+                var frames = controls.stopFrame();
                 var fps = Math.round(frames*1000/elapsed);
                 startIteration(elm);
                 var evt = document.createEvent("Event");
@@ -226,7 +192,6 @@
 
     var ref = null;
     var startTime = null;
-    var frameID = null;
     var bodyWidth;
     var margin = 10;
 
@@ -252,8 +217,7 @@
             }
         },
         stop : function() {
-            controls.cancelAnimationFrame(frameID);
-            frameID = null;
+            controls.stopframe();
             var bodyRef = document.getElementsByTagName("body").item(0);
             bodyRef.removeChild(ref);
             ref = null;
@@ -290,6 +254,7 @@
         stats.std = Math.sqrt(stats.variance);
 
         self.stats = stats;
+        console.log(stats);
 
         return stats;
     }
